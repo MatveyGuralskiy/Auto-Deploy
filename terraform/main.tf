@@ -180,6 +180,41 @@ resource "aws_lb_target_group_attachment" "TargetGroup_B_Attach" {
 }
 
 # Create ALB
+
+resource "aws_lb" "website_lb" {
+  name               = "website-alb"
+  load_balancer_type = "application"
+  subnets            = ["subnet-1a", "subnet-1b"]
+  security_groups    = [aws_security_group.website_sg.id]
+  availability_zones = ["us-west-2a", "us-west-2b"]
+}
+
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.website_lb.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_acm_certificate.website_cert.arn
+}
+
+resource "aws_lb_target_group" "website_target_group" {
+  name     = "website-target-group"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = "vpc-12345678"
+}
+
+resource "aws_lb_target_group_attachment" "website_target_attachment" {
+  target_group_arn = aws_lb_target_group.website_target_group.arn
+  target_id        = aws_instance.website_instance.id
+  port             = 80
+}
+
+
+
+
+
+
 resource "aws_lb" "ALB" {
   name               = "Application LoadBalancer"
   internal           = false
@@ -218,6 +253,73 @@ resource "aws_cloudwatch_metric_alarm" "alb_cpu_utilization_alarm" {
   threshold         = 80
   alarm_description = "Alarm if ALB CPU Utilization greater than 80%"
   alarm_actions     = [aws_sns_topic.ALB_Alarm.arn]
+}
+
+
+
+resource "aws_acm_certificate" "example" {
+  domain_name       = "example.com"
+  validation_method = "DNS"
+
+  tags = {
+    Name = "ExampleCertificate"
+  }
+}
+
+
+resource "aws_acm_certificate" "website_cert" {
+  domain_name       = "website.matveyguralskiy.com"
+  validation_method = "DNS"
+}
+
+
+data "aws_acm_certificate_validation" "example" {
+  certificate_arn = aws_acm_certificate.example.arn
+}
+
+output "certificate_validation_dns" {
+  value = data.aws_acm_certificate_validation.example.resource_record_name
+}
+
+
+data "aws_acm_certificate_validation" "website_cert_validation" {
+  certificate_arn = aws_acm_certificate.website_cert.arn
+}
+
+output "website_cert_validation_dns" {
+  value = data.aws_acm_certificate_validation.website_cert_validation.resource_record_name
+}
+
+
+
+resource "aws_route53_record" "example_validation" {
+  zone_id = "YOUR_ZONE_ID"
+  name    = data.aws_acm_certificate_validation.example.resource_record_name
+  type    = data.aws_acm_certificate_validation.example.resource_record_type
+  ttl     = "300"
+  records = [data.aws_acm_certificate_validation.example.resource_record_value]
+}
+
+
+
+resource "aws_route53_record" "website_cert_validation" {
+  zone_id = "YOUR_ZONE_ID"
+  name    = data.aws_acm_certificate_validation.website_cert_validation.resource_record_name
+  type    = data.aws_acm_certificate_validation.website_cert_validation.resource_record_type
+  ttl     = "300"
+  records = [data.aws_acm_certificate_validation.website_cert_validation.resource_record_value]
+}
+
+resource "aws_route53_record" "website_alias" {
+  zone_id = "YOUR_ZONE_ID"
+  name    = "website.matveyguralskiy.com"
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.website_lb.dns_name
+    zone_id                = aws_lb.website_lb.zone_id
+    evaluate_target_health = true
+  }
 }
 
 */
