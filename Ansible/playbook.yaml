@@ -14,21 +14,9 @@
         name: docker
         state: started
 
-    - name: Clone Dockerfile from Git repository
-      git:
-        repo: https://github.com/your/repository.git
-        dest: /path/to/your/application
-        version: master
-
-    - name: Build Docker image
-      docker_image:
-        path: /path/to/your/application
-        name: your_docker_image_name
-        tag: latest
-
     - name: Run Docker container
       docker_container:
-        name: your_container_name
-        image: your_docker_image_name:latest
+        name: application
+        image: matveyguralkiy/application:V1.0
         ports:
           - "80:80"
