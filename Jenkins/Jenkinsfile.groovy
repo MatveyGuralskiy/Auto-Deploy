@@ -40,6 +40,7 @@ pipeline {
                                             error "Dockerfile not found in the repository."
                                         }
                                         sh 'git pull origin main'
+                                        }
                                     }
                                 } else {
                                     sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
