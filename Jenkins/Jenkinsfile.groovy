@@ -40,14 +40,18 @@ pipeline {
                                             error "Dockerfile not found in the repository."
                                         }
                                         sh 'git pull origin main'
+                                        dir('Application') {
+                                            sh 'docker build -t auto-deploy:V1.0 .'
                                         }
                                     }
                                 } else {
+                                    // If repository doesn't exist
                                     sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
-                                }
-                                // Build Docker Image
-                                    sh 'cd Application'
-                                    sh 'docker build -t auto-deploy:V1.0 .'
+                                    // Build Docker Image
+                                    dir('Application') {
+                                        sh 'docker build -t auto-deploy:V1.0 .'
+                                    }
+                                } 
                                 sh 'echo "Application created to Docker Image"'
                             }
                         }
