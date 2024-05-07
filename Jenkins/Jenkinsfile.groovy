@@ -1,6 +1,7 @@
 pipeline {
     agent any
     
+    // credentials
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('dockerhub')
         GITHUB_CREDENTIALS = credentials('github')
@@ -10,58 +11,72 @@ pipeline {
         stage('Testing Port 80') {
             steps {
                 script {
-                    sh 'echo "Starting to Testing"'
-                    def portStatus = sh(script: 'nc -zv localhost 80', returnStatus: true)
-                    if (portStatus == 0) {
-                        echo "Port 80 is open"
-                    } else {
-                        error "Port 80 is closed"
+                    try {
+                        sh 'echo "Starting to Testing Port 80"'
+                        def portStatus = sh(script: 'nc -zv localhost 80', returnStatus: true)
+                        if (portStatus == 0) {
+                            echo "Port 80 is open"
+                        } else {
+                            error "Port 80 is closed"
+                        }
+                        sh 'echo "Port 80 Test Success"'
+                    } catch (Exception e) {
+                        error "Failed to test port 80: ${e.message}"
                     }
-                    sh 'echo "Test was Success"'
                 }
             }
         }
         stage('Clone Repository and Build Docker Image') {
             steps {
-                dir('docker-image') {
-                    sh 'echo "Starting to Clone and Build Image"'
-                    sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
-                    sh 'docker build -t auto-deploy:V1.0 .'
-                    sh 'echo "Application created to Docker Image"'
-                }
-            }
-        }
-        stage('Push Docker Image to DockerHub') {
-            steps {
                 script {
-                    sh 'echo "Starting to Push Image to DockerHub"'
-                    sh 'docker tag auto-deploy:V1.0 matveyguralskiy/auto-deploy:V1.0'
-                    sh 'docker push matveyguralskiy/auto-deploy:V1.0'
-                    sh 'echo "Docker Image uploaded"'
-                }
-            }
-        }
-        stage('Deploy Infrastructure with Terraform') {
-            steps {
-                script {
-                    dir('Terraform') {
-                        sh 'echo "Starting Terraform deployment"'
-                        sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Terraform'
-                        sh 'terraform init'
-                        sh 'terraform plan -out=tfplan'
-                        sh 'terraform apply tfplan'
-                        sh 'echo "Terraform deployment completed"'
+                    try {
+                        dir('Docker-Image') {
+                            sh 'echo "Starting to Clone and Build Image"'
+                            sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
+                            sh 'docker build -t auto-deploy:V1.0 .'
+                            sh 'echo "Application created to Docker Image"'
+                        }
+                    } catch (Exception e) {
+                        error "Failed to clone repository or build Docker image: ${e.message}"
                     }
                 }
             }
         }
-        stage('Configure Infrastructure with Ansible') {
+        stage('Rename and Push Docker Image to DockerHub') {
             steps {
                 script {
-                    dir('Ansible') {
-                        sh 'echo "Starting Ansible configuration"'
-                        sh 'ansible-playbook playbook.yml'
-                        sh 'echo "Ansible configuration completed"'
+                    try {
+                        sh 'echo "Starting to Rename and Push Image to DockerHub"'
+                        sh 'docker tag auto-deploy:V1.0 matveyguralskiy/auto-deploy:V1.0'
+                        sh 'docker push matveyguralskiy/auto-deploy:V1.0'
+                        sh 'echo "Docker Image uploaded"'
+                    } catch (Exception e) {
+                        error "Failed to push Docker image to DockerHub: ${e.message}"
+                    }
+                }
+            }
+        }
+        stage('Testing Docker Container') {
+            steps {
+                script {
+                    try {
+                        sh 'echo "Starting to Test Docker Container"'
+                        // Download Image from DockerHub
+                        sh 'docker pull matveyguralskiy/auto-deploy:V1.0'
+                        // Run Docker Image on port 80
+                        sh 'docker run -d --name test-container -p 80:80 matveyguralskiy/auto-deploy:V1.0'
+                        // Testing with curl
+                        def response = sh(script: 'curl -s -o /dev/null -w "%{http_code}" localhost', returnStdout: true).trim()
+                        if (response == '200') {
+                            echo "Application page is accessible"
+                        } else {
+                            error "Failed to access application page. HTTP status code: ${response}"
+                        }
+                        // Terminate Docker Container
+                        sh 'docker rm -f test-container'
+                        sh 'echo "Docker Container Test Success"'
+                    } catch (Exception e) {
+                        error "Failed to test Docker container: ${e.message}"
                     }
                 }
             }
