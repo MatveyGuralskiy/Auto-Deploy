@@ -36,6 +36,9 @@ pipeline {
                                 if (fileExists('Application')) {
                                     // If repository already consist, update him
                                     dir('Application') {
+                                        if (!fileExists('Dockerfile')) {
+                                            error "Dockerfile not found in the repository."
+                                        }
                                         sh 'git pull origin main'
                                     }
                                 } else {
