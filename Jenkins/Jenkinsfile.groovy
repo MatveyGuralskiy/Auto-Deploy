@@ -33,17 +33,23 @@ pipeline {
                         dir('Docker-Image') {
                             sh 'echo "Starting to Clone and Build Image"'
                             withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
-                                sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
+                                if (fileExists('Application')) {
+                                    // If repository already consist, update him
+                                    dir('Application') {
+                                        sh 'git pull origin master'
+                                    }
+                                } else {
+                                    sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
+                                }
+                                // Build Docker Image
                                 dir('Application') {
-                                    // Inside Application directory
                                     sh 'docker build -t auto-deploy:V1.0 .'
                                 }
-                                sh 'docker build -t auto-deploy:V1.0 .'
                                 sh 'echo "Application created to Docker Image"'
                             }
                         }
                     } catch (Exception e) {
-                        error "Failed to clone repository or build Docker image: ${e.message}"
+                        error "Failed to clone repository or build Docker image ${e.message}"
                     }
                 }
             }
@@ -72,7 +78,7 @@ pipeline {
                         // Download Image from DockerHub
                         sh 'docker pull matveyguralskiy/auto-deploy:V1.0'
                         // Run Docker Image on port 80
-                        sh 'docker run -d --name test-container -p 7000:80 matveyguralskiy/auto-deploy:V1.0'
+                        sh 'docker run -d --name test-container -p 80:80 matveyguralskiy/auto-deploy:V1.0'
                         // Testing with curl
                         def response = sh(script: 'curl -s -o /dev/null -w "%{http_code}" localhost', returnStdout: true).trim()
                         if (response == '200') {
