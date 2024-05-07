@@ -35,18 +35,22 @@ pipeline {
                             withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
                                 if (fileExists('Application')) {
                                     // If repository already consist, update it
-                                    dir('Application') {
-                                        if (!fileExists('Dockerfile')) {
+                                    dir('Auto-Deploy') {
+                                        dir('Application') {
+                                             if (!fileExists('Dockerfile')) {
                                             error "Dockerfile not found in the repository."
+                                            }
+                                            sh 'git pull origin main'
                                         }
-                                        sh 'git pull origin main'
                                     }
                                 } else {
-                                    sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
+                                    sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git'
                                 }
                                 // Build Docker Image
-                                dir('Application') {
-                                    sh 'docker build -t auto-deploy:V1.0 .'
+                                dir('Auto-Deploy') {
+                                    dir('Application') {
+                                        sh 'docker build -t auto-deploy:V1.0 .'
+                                    }
                                 }
                                 sh 'echo "Application created to Docker Image"'
                             }
