@@ -32,9 +32,11 @@ pipeline {
                     try {
                         dir('Docker-Image') {
                             sh 'echo "Starting to Clone and Build Image"'
-                            sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
-                            sh 'docker build -t auto-deploy:V1.0 .'
-                            sh 'echo "Application created to Docker Image"'
+                            withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
+                                sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
+                                sh 'docker build -t auto-deploy:V1.0 .'
+                                sh 'echo "Application created to Docker Image"'
+                            }
                         }
                     } catch (Exception e) {
                         error "Failed to clone repository or build Docker image: ${e.message}"
@@ -46,10 +48,12 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'echo "Starting to Rename and Push Image to DockerHub"'
-                        sh 'docker tag auto-deploy:V1.0 matveyguralskiy/auto-deploy:V1.0'
-                        sh 'docker push matveyguralskiy/auto-deploy:V1.0'
-                        sh 'echo "Docker Image uploaded"'
+                        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                            sh 'echo "Starting to Rename and Push Image to DockerHub"'
+                            sh 'docker tag auto-deploy:V1.0 matveyguralskiy/auto-deploy:V1.0'
+                            sh 'docker push matveyguralskiy/auto-deploy:V1.0'
+                            sh 'echo "Docker Image uploaded"'
+                        }
                     } catch (Exception e) {
                         error "Failed to push Docker image to DockerHub: ${e.message}"
                     }
