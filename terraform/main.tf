@@ -147,8 +147,8 @@ resource "aws_instance" "Webserver-B" {
   }
 }
 
+#-----------ALB-------------
 
-/*
 # Create Target Group for Availability zone A
 resource "aws_lb_target_group" "TargetGroup_A" {
   name     = "TargetGroup_A"
@@ -161,7 +161,7 @@ resource "aws_lb_target_group" "TargetGroup_A" {
 resource "aws_lb_target_group_attachment" "TargetGroup_A_Attach" {
   count            = 2
   target_group_arn = aws_lb_target_group.TargetGroup_A.arn
-  target_id        = aws_instance.Webserver[count.index[0 - 1].id]
+  target_id        = aws_instance.Webserver-A[0-1].id
 }
 
 # Create Target Group for Availability zone B
@@ -176,55 +176,26 @@ resource "aws_lb_target_group" "TargetGroup_B" {
 resource "aws_lb_target_group_attachment" "TargetGroup_B_Attach" {
   count            = 2
   target_group_arn = aws_lb_target_group.TargetGroup_B.arn
-  target_id        = aws_instance.Webserver[count.index[2 - 3].id]
+  target_id        = aws_instance.WebserverB[0-1].id
 }
 
-# Create ALB
-
-resource "aws_lb" "website_lb" {
-  name               = "website-alb"
+# Create Application LoadBalancer
+resource "aws_lb" "ALB" {
+  name               = "Application Load Balancer"
   load_balancer_type = "application"
-  subnets            = ["subnet-1a", "subnet-1b"]
-  security_groups    = [aws_security_group.website_sg.id]
-  availability_zones = ["us-west-2a", "us-west-2b"]
+  subnets            = [ aws_subnet.Subnet_A, aws_subnet.Subnet_B]
+  security_groups    = [aws_security_group..id]
+  availability_zones = "${var.Region}a"  ,"${var.Region}b"
 }
 
 resource "aws_lb_listener" "https" {
-  load_balancer_arn = aws_lb.website_lb.arn
+  load_balancer_arn = aws_lb.ALB.arn
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = aws_acm_certificate.website_cert.arn
+  certificate_arn   = aws_acm_certificate..arn
 }
 
-resource "aws_lb_target_group" "website_target_group" {
-  name     = "website-target-group"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = "vpc-12345678"
-}
-
-resource "aws_lb_target_group_attachment" "website_target_attachment" {
-  target_group_arn = aws_lb_target_group.website_target_group.arn
-  target_id        = aws_instance.website_instance.id
-  port             = 80
-}
-
-
-
-
-
-
-resource "aws_lb" "ALB" {
-  name               = "Application LoadBalancer"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.SG_AutoDeploy.id]
-
-  enable_deletion_protection = false
-
-  subnets = [aws_subnet.Public_Subnet[0].id, aws_subnet.Public_Subnet[1].id]
-}
 
 #-----------SNS-------------
 
@@ -255,42 +226,29 @@ resource "aws_cloudwatch_metric_alarm" "alb_cpu_utilization_alarm" {
   alarm_actions     = [aws_sns_topic.ALB_Alarm.arn]
 }
 
+#-----------SLS-------------
 
-
-resource "aws_acm_certificate" "example" {
-  domain_name       = "example.com"
+resource "aws_acm_certificate" "Application_SSL" {
+  domain_name       = "website.matveyguralskiy.com"
   validation_method = "DNS"
-
   tags = {
-    Name = "ExampleCertificate"
+    Name = "Application SSL Certificate"
   }
 }
 
 
-resource "aws_acm_certificate" "website_cert" {
-  domain_name       = "website.matveyguralskiy.com"
-  validation_method = "DNS"
+data "aws_acm_certificate_validation" "Application_SSL_Validation" {
+  certificate_arn = aws_acm_certificate.Application_SSL.arn
 }
 
-
-data "aws_acm_certificate_validation" "example" {
-  certificate_arn = aws_acm_certificate.example.arn
+output "Application_SSL_DNS_Validation" {
+  value = data.aws_acm_certificate_validation.Application_SSL_Validation.resource_record_name
 }
 
-output "certificate_validation_dns" {
-  value = data.aws_acm_certificate_validation.example.resource_record_name
+data "aws_route53_zone" "Application_Zone" {
+  
+  
 }
-
-
-data "aws_acm_certificate_validation" "website_cert_validation" {
-  certificate_arn = aws_acm_certificate.website_cert.arn
-}
-
-output "website_cert_validation_dns" {
-  value = data.aws_acm_certificate_validation.website_cert_validation.resource_record_name
-}
-
-
 
 resource "aws_route53_record" "example_validation" {
   zone_id = "YOUR_ZONE_ID"
