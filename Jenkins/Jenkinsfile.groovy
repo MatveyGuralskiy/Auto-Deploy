@@ -36,7 +36,7 @@ pipeline {
                                 if (fileExists('Application')) {
                                     // If repository already consist, update him
                                     dir('Application') {
-                                        sh 'git pull origin master'
+                                        sh 'git pull origin main'
                                     }
                                 } else {
                                     sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
