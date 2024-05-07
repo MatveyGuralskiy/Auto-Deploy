@@ -34,6 +34,10 @@ pipeline {
                             sh 'echo "Starting to Clone and Build Image"'
                             withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
                                 sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
+                                dir('Application') {
+                                    // Inside Application directory
+                                    sh 'docker build -t auto-deploy:V1.0 .'
+                                }
                                 sh 'docker build -t auto-deploy:V1.0 .'
                                 sh 'echo "Application created to Docker Image"'
                             }
