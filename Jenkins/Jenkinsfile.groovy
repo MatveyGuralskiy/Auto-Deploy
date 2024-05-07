@@ -50,6 +50,7 @@ pipeline {
                 script {
                     try {
                         withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                            sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
                             sh 'docker tag auto-deploy:V1.0 matveyguralskiy/auto-deploy:V1.0'
                             sh 'docker push matveyguralskiy/auto-deploy:V1.0'
                             echo "Docker Image uploaded"
