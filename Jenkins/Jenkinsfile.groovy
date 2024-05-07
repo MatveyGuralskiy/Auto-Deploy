@@ -34,24 +34,20 @@ pipeline {
                             sh 'echo "Starting to Clone and Build Image"'
                             withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
                                 if (fileExists('Application')) {
-                                    // If repository already consist, update him
+                                    // If repository already consist, update it
                                     dir('Application') {
                                         if (!fileExists('Dockerfile')) {
                                             error "Dockerfile not found in the repository."
                                         }
                                         sh 'git pull origin main'
-                                        dir('Application') {
-                                            sh 'docker build -t auto-deploy:V1.0 .'
-                                        }
                                     }
                                 } else {
-                                    // If repository doesn't exist
                                     sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
-                                    // Build Docker Image
-                                    dir('Application') {
-                                        sh 'docker build -t auto-deploy:V1.0 .'
-                                    }
-                                } 
+                                }
+                                // Build Docker Image
+                                dir('Application') {
+                                    sh 'docker build -t auto-deploy:V1.0 .'
+                                }
                                 sh 'echo "Application created to Docker Image"'
                             }
                         }
