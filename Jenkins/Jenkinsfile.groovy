@@ -33,13 +33,23 @@ pipeline {
                         dir('Docker-Image') {
                             sh 'echo "Starting to Clone and Build Image"'
                             withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
-                                sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
-                                sh 'docker build -t auto-deploy:V1.0 .'
+                                if (fileExists('Application')) {
+                                    // Если каталог существует, обновляем репозиторий
+                                    dir('Application') {
+                                        sh 'git pull origin master'
+                                    }
+                                } else {
+                                    sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
+                                }
+                                // Build Docker Image
+                                dir('Application') {
+                                    sh 'docker build -t auto-deploy:V1.0 .'
+                                }
                                 sh 'echo "Application created to Docker Image"'
                             }
                         }
                     } catch (Exception e) {
-                        error "Failed to clone repository or build Docker image: ${e.message}"
+                        error "Failed to clone repository or build Docker image ${e.message}"
                     }
                 }
             }
