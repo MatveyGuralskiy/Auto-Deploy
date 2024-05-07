@@ -23,16 +23,22 @@ pipeline {
             steps {
                 script {
                     try {
-                        if (!fileExists('Auto-Deploy')) {
-                            git credentialsId: 'github', url: 'https://github.com/MatveyGuralskiy/Auto-Deploy.git'
-                        }
-                        dir('Auto-Deploy/Application') {
-                            if (!fileExists('Dockerfile')) {
-                                error "Dockerfile not found in the repository."
+                        dir('Docker-Image') {
+                            sh 'echo "Starting to Clone and Build Image"'
+                            withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
+                                if (fileExists('Application/Application')) {
+                                    dir('Application') {
+                                        sh 'git pull origin main'
+                                    }
+                                } else {
+                                    sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
+                                }
+                                dir('Application/Application') {
+                                    sh 'docker build -t auto-deploy:V1.0 .'
+                                }
+                                sh 'echo "Application created to Docker Image"'
                             }
-                            sh 'docker build -t auto-deploy:V1.0 .'
                         }
-                        echo "Application created as Docker Image"
                     } catch (Exception e) {
                         error "Failed to clone repository or build Docker image: ${e.message}"
                     }
