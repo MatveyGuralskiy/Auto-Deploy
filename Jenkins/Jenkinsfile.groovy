@@ -28,7 +28,7 @@ pipeline {
                     try {
                         dir('Docker-Image') {
                             sh 'echo "Starting to Clone and Build Image"'
-                             withAWS(credentials: env.AWS_CREDENTIALS) {
+                            withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
                                 if (fileExists('Application/Application')) {
                                     dir('Application') {
                                         sh 'git pull origin main'
@@ -89,8 +89,8 @@ pipeline {
                 script {
                     try {
                         dir('terraform') {
-                            sh 'export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID'
-                            sh 'export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY'
+                            sh 'export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"'
+                            sh 'export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"'
                             sh 'terraform init'
                             sh 'terraform apply -auto-approve'
                         }
