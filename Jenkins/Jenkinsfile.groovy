@@ -4,6 +4,8 @@ pipeline {
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('dockerhub')
         GITHUB_CREDENTIALS = credentials('github')
+        AWS_CREDENTIALS = credentials('aws')
+        DOCKER_VERSION = 'V1.0'
     }
 
     stages {
@@ -34,7 +36,7 @@ pipeline {
                                     sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
                                 }
                                 dir('Application/Application') {
-                                    sh 'docker build -t auto-deploy:V1.0 .'
+                                    sh 'docker build -t auto-deploy:${env.DOCKER_VERSION} .'
                                 }
                                 sh 'echo "Application created to Docker Image"'
                             }
@@ -85,8 +87,8 @@ pipeline {
             steps {
                 script {
                     try {
-                        dir('../terraform') {
-                            withCredentials([awsAccessKey(credentialsId: 'aws', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                        dir('terraform') {
+                            withAWS(credentials: env.AWS_CREDENTIALS) {
                                 sh 'terraform init'
                                 sh 'terraform apply -auto-approve'
                             }
