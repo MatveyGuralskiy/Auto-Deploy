@@ -81,5 +81,37 @@ pipeline {
                 }
             }
         }
+        stage('Terraform Deployment with AWS') {
+            steps {
+                script {
+                    try {
+                        dir('terraform') {
+                            withCredentials([awsAccessKey(credentialsId: 'aws', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                                sh 'terraform init'
+                                sh 'terraform apply -auto-approve'
+                            }
+                        }
+                        echo "Terraform apply completed successfully"
+                        echo "Finished deployment"
+                    } catch (Exception e) {
+                        error "Failed to apply Terraform configuration: ${e.message}"
+                    }
+                }
+            }
+        }
+        stage('Test Website') {
+            steps {
+                script {
+                    try {
+                        sh 'sleep 30'
+                        sh 'ping -c 5 website.matveyguralskiy.com'
+                        echo "Website ping test completed successfully"
+                        echo "Application works correctly!"
+                    } catch (Exception e) {
+                        error "Failed to ping website: ${e.message}"
+                    }
+                }
+            }
+        }
     }
 }
