@@ -36,6 +36,16 @@ After that, we check to make sure everything still works with those Docker image
 
 <img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Demonstration.png?raw=true">
 <br>
+<h2>3 Steps of Project and Detail Demonstartion</h2>
+<br>
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Step-1.png?raw=true">
+<br>
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Step-2.png?raw=true">
+<br>
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Step-3.png?raw=true">
+<br>
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Detail-Demonstarion.png?raw=true">
+<br>
 
 ### 📱 Application for Docker Image Built With
 
