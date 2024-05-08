@@ -36,7 +36,7 @@ pipeline {
                                     sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
                                 }
                                 dir('Application/Application') {
-                                    sh 'docker build -t auto-deploy:${env.DOCKER_VERSION} .'
+                                    sh "docker build -t auto-deploy:${env.DOCKER_VERSION} ."
                                 }
                                 sh 'echo "Application created to Docker Image"'
                             }
