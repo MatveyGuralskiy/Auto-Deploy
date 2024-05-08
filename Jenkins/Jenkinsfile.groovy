@@ -27,7 +27,7 @@ pipeline {
                     try {
                         dir('Docker-Image') {
                             sh 'echo "Starting to Clone and Build Image"'
-                            withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
+                             withAWS(credentials: env.AWS_CREDENTIALS) {
                                 if (fileExists('Application/Application')) {
                                     dir('Application') {
                                         sh 'git pull origin main'
