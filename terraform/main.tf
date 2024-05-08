@@ -113,35 +113,39 @@ resource "aws_security_group" "SG_AutoDeploy" {
 }
 
 # Image for EC2 Instance
-data "aws_ami" "Latest_Amazon" {
-  owners      = ["137112412989"]
+data "aws_ami" "Latest_Ubuntu" {
+  owners      = ["099720109477"]
   most_recent = true
   filter {
     name   = "name"
-    values = ["al2023-ami-*-x86_64"]
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
   }
 }
 
 # Create 4 EC2 Instances
-resource "aws_instance" "Webserver-A" {
+resource "aws_instance" "Webserver_A" {
   count             = 2
-  ami               = data.aws_ami.Latest_Amazon.id
+  ami               = data.aws_ami.Latest_Ubuntu.id
   instance_type     = var.Instance_type
   subnet_id         = aws_subnet.Subnet_A.id
   security_groups   = [aws_security_group.SG_AutoDeploy.id]
   availability_zone = "${var.Region}a"
+  # Bash script to install Docker Image
+  user_data = file("../Bash/bootstrapping.sh")
   tags = {
     Name = "Webserver A ${count.index + 1}"
   }
 }
 
-resource "aws_instance" "Webserver-B" {
+resource "aws_instance" "Webserver_B" {
   count             = 2
-  ami               = data.aws_ami.Latest_Amazon.id
+  ami               = data.aws_ami.Latest_Ubuntu.id
   instance_type     = var.Instance_type
   subnet_id         = aws_subnet.Subnet_B.id
   security_groups   = [aws_security_group.SG_AutoDeploy.id]
   availability_zone = "${var.Region}b"
+  # Bash script to install Docker Image
+  user_data = file("../Bash/bootstrapping.sh")
   tags = {
     Name = "Webserver B ${count.index + 1}"
   }
@@ -149,53 +153,99 @@ resource "aws_instance" "Webserver-B" {
 
 #-----------ALB-------------
 
-# Create Target Group for Availability zone A
-resource "aws_lb_target_group" "TargetGroup_A" {
-  name     = "TargetGroup_A"
+# Create Target Group for EC2 Instances
+resource "aws_lb_target_group" "TG_Webserver" {
+  name     = "Target-Group-Webserver"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.VPC_AutoDeploy.id
+  tags = {
+    Name = "TG-Webserver"
+  }
 }
 
-# Attach Target Group A
-resource "aws_lb_target_group_attachment" "TargetGroup_A_Attach" {
+# Attach EC2 Instances to Target Group 
+resource "aws_lb_target_group_attachment" "TG_Attach_Webserver_A" {
   count            = 2
-  target_group_arn = aws_lb_target_group.TargetGroup_A.arn
-  target_id        = aws_instance.Webserver-A[0-1].id
+  target_group_arn = aws_lb_target_group.TG_Webserver.arn
+  target_id        = aws_instance.Webserver_A[count.index].id
 }
 
-# Create Target Group for Availability zone B
-resource "aws_lb_target_group" "TargetGroup_B" {
-  name     = "TargetGroup_B"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.VPC_AutoDeploy.id
-}
-
-# Attach Target Group B
-resource "aws_lb_target_group_attachment" "TargetGroup_B_Attach" {
+resource "aws_lb_target_group_attachment" "TG_Attach_Webserver_B" {
   count            = 2
-  target_group_arn = aws_lb_target_group.TargetGroup_B.arn
-  target_id        = aws_instance.WebserverB[0-1].id
+  target_group_arn = aws_lb_target_group.TG_Webserver.arn
+  target_id        = aws_instance.Webserver_B[count.index].id
 }
 
 # Create Application LoadBalancer
 resource "aws_lb" "ALB" {
-  name               = "Application Load Balancer"
+  name               = "Application-Load-Balancer"
+  internal           = false
   load_balancer_type = "application"
-  subnets            = [ aws_subnet.Subnet_A, aws_subnet.Subnet_B]
-  security_groups    = [aws_security_group..id]
-  availability_zones = "${var.Region}a"  ,"${var.Region}b"
+  security_groups    = [aws_security_group.SG_AutoDeploy.id]
+
+  subnet_mapping {
+    subnet_id = aws_subnet.Subnet_A.id
+  }
+
+  subnet_mapping {
+    subnet_id = aws_subnet.Subnet_B.id
+  }
+
 }
 
-resource "aws_lb_listener" "https" {
+#Load Balancer Default port 443
+resource "aws_lb_listener" "Webserver-HTTPS" {
   load_balancer_arn = aws_lb.ALB.arn
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = aws_acm_certificate..arn
+  certificate_arn   = var.Certificate
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.TG_Webserver.arn
+  }
 }
 
+# Redirect HTTP to HTTPS
+resource "aws_lb_listener" "Redirect_HTTP" {
+  load_balancer_arn = aws_lb.ALB.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+
+# Route53 Hosted zone
+data "aws_route53_zone" "Hosted_Zone" {
+  name = "matveyguralskiy.com"
+}
+
+#Zone ID for Validation
+output "zone_id" {
+  value = data.aws_route53_zone.Hosted_Zone.zone_id
+}
+
+resource "aws_route53_record" "Website_Record" {
+  zone_id = data.aws_route53_zone.Hosted_Zone.zone_id
+  name    = "website.matveyguralskiy.com"
+  type    = "A"
+  alias {
+    name                   = aws_lb.ALB.dns_name
+    zone_id                = aws_lb.ALB.zone_id
+    evaluate_target_health = true
+  }
+}
 
 #-----------SNS-------------
 
@@ -212,7 +262,7 @@ resource "aws_sns_topic_subscription" "Gmail_Alarm" {
 }
 
 # CloudWatch Alarm
-resource "aws_cloudwatch_metric_alarm" "alb_cpu_utilization_alarm" {
+resource "aws_cloudwatch_metric_alarm" "CloudWatch_Alarm" {
   alarm_name          = "ALBCPUUtilizationAlarm"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1
@@ -226,58 +276,25 @@ resource "aws_cloudwatch_metric_alarm" "alb_cpu_utilization_alarm" {
   alarm_actions     = [aws_sns_topic.ALB_Alarm.arn]
 }
 
-#-----------SLS-------------
-
-resource "aws_acm_certificate" "Application_SSL" {
+#----------------SSL-----------------
+/*
+# Create SSL with AWS Certificate Manager
+resource "aws_acm_certificate" "Website_Certificate" {
   domain_name       = "website.matveyguralskiy.com"
   validation_method = "DNS"
-  tags = {
-    Name = "Application SSL Certificate"
-  }
 }
 
-
-data "aws_acm_certificate_validation" "Application_SSL_Validation" {
-  certificate_arn = aws_acm_certificate.Application_SSL.arn
+resource "aws_acm_certificate_validation" "Website_Certificate_Validation" {
+  certificate_arn         = aws_acm_certificate.Website_Certificate.arn
+  validation_record_fqdns = [for option in aws_acm_certificate.Website_Certificate.domain_validation_options : option.resource_record_name]
 }
 
-output "Application_SSL_DNS_Validation" {
-  value = data.aws_acm_certificate_validation.Application_SSL_Validation.resource_record_name
-}
-
-data "aws_route53_zone" "Application_Zone" {
-  
-  
-}
-
-resource "aws_route53_record" "example_validation" {
-  zone_id = "YOUR_ZONE_ID"
-  name    = data.aws_acm_certificate_validation.example.resource_record_name
-  type    = data.aws_acm_certificate_validation.example.resource_record_type
-  ttl     = "300"
-  records = [data.aws_acm_certificate_validation.example.resource_record_value]
-}
-
-
-
-resource "aws_route53_record" "website_cert_validation" {
-  zone_id = "YOUR_ZONE_ID"
-  name    = data.aws_acm_certificate_validation.website_cert_validation.resource_record_name
-  type    = data.aws_acm_certificate_validation.website_cert_validation.resource_record_type
-  ttl     = "300"
-  records = [data.aws_acm_certificate_validation.website_cert_validation.resource_record_value]
-}
-
-resource "aws_route53_record" "website_alias" {
-  zone_id = "YOUR_ZONE_ID"
-  name    = "website.matveyguralskiy.com"
-  type    = "A"
-
-  alias {
-    name                   = aws_lb.website_lb.dns_name
-    zone_id                = aws_lb.website_lb.zone_id
-    evaluate_target_health = true
-  }
+resource "aws_route53_record" "certificate_validation" {
+  zone_id = data.aws_route53_zone.Hosted_Zone.zone_id
+  ttl     = 60
+  name    = tolist(aws_acm_certificate_validation.Website_Certificate_Validation.validation_record_fqdns)[0].resource_record_name
+  records = [tolist(aws_acm_certificate_validation.Website_Certificate_Validation.validation_record_fqdns)[0].resource_record_value]
+  type    = "CNAME"
 }
 
 */
