@@ -4,7 +4,8 @@ pipeline {
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('dockerhub')
         GITHUB_CREDENTIALS = credentials('github')
-        AWS_CREDENTIALS = credentials('aws')
+        AWS_ACCESS_KEY_ID     = credentials('aws').accessKeyId
+        AWS_SECRET_ACCESS_KEY = credentials('aws').secretKey
         DOCKER_VERSION = 'V1.0'
     }
 
@@ -88,10 +89,10 @@ pipeline {
                 script {
                     try {
                         dir('terraform') {
-                            withCredentials([awsAccessKey(credentialsId: 'aws', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                                sh 'terraform init'
-                                sh 'terraform apply -auto-approve'
-                            }
+                            sh 'export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID'
+                            sh 'export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY'
+                            sh 'terraform init'
+                            sh 'terraform apply -auto-approve'
                         }
                         echo "Terraform apply completed successfully"
                         echo "Finished deployment"
