@@ -4,8 +4,8 @@ pipeline {
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('dockerhub')
         GITHUB_CREDENTIALS = credentials('github')
-        AWS_ACCESS_KEY_ID     = "${credentials('aws').accessKeyId}"
-        AWS_SECRET_ACCESS_KEY = "${credentials('aws').secretKey}"
+        AWS_ACCESS_KEY_ID     = credentials('aws-access')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret')
         DOCKER_VERSION = 'V1.0'
     }
 
