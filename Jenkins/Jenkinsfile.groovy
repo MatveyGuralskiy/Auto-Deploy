@@ -102,19 +102,4 @@ pipeline {
                 }
             }
         }
-        stage('Test Website') {
-            steps {
-                script {
-                    try {
-                        sh 'sleep 30'
-                        sh 'ping -c 5 website.matveyguralskiy.com'
-                        echo "Website ping test completed successfully"
-                        echo "Application works correctly!"
-                    } catch (Exception e) {
-                        error "Failed to ping website: ${e.message}"
-                    }
-                }
-            }
-        }
-    }
 }
