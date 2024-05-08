@@ -25,6 +25,7 @@ pipeline {
                     try {
                         dir('Docker-Image') {
                             sh 'echo "Starting to Clone and Build Image"'
+                            sh 'sudo chown jenkins:docker /var/run/docker.sock'
                             withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
                                 if (fileExists('Application/Application')) {
                                     dir('Application') {
