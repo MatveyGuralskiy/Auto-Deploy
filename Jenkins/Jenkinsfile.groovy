@@ -6,7 +6,7 @@ pipeline {
         GITHUB_CREDENTIALS = credentials('github')
         AWS_ACCESS_KEY_ID     = credentials('aws-access')
         AWS_SECRET_ACCESS_KEY = credentials('aws-secret')
-        DOCKER_VERSION = 'V1.1'
+        DOCKER_VERSION = 'V1.2'
     }
     
     stages {
