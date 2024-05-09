@@ -286,6 +286,9 @@ For example change the Docker version in Jenkinsfile and change HTML file of App
 
 Now Your Intances will upload new version of Application
 
+To change the Version of Application, You should change Application files in HTML Version,
+
+Bash Bootstrapping to the new version and in Jenkins file environment variable DOCKER VERSION value
 
 And DockerHub get now new versions of Project
 
@@ -302,9 +305,6 @@ In AWS Console Route53 get new Record because of Terraform
 It's All List of Instances
 
 <img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Instances-33.png?raw=true">
-<h2>🎬 View Demo</h2>
-<p>Comming soon...</p>
-
 
 <h2>📂 Repository</h2>
 <p>
