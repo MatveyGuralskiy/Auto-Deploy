@@ -131,6 +131,9 @@ sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 # To Add User to Docker
 sudo usermod -aG docker $USER
+# To Add Jenkins User to Docker
+sudo usermod -aG docker jenkins
+# After that Reboot your Instance
 # To check if Docker works
 docker images
 ```
