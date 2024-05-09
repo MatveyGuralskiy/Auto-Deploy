@@ -37,7 +37,7 @@ pipeline {
                                     sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
                                 }
                                 dir('Application/Application') {
-                                    sh "docker build -t auto-deploy:${env.DOCKER_VERSION} ."
+                                    sh "docker build -t auto-deploy:V1.1 ."
                                 }
                                 sh 'echo "Application created to Docker Image"'
                             }
@@ -54,8 +54,8 @@ pipeline {
                     try {
                         withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                             sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
-                            sh 'docker tag auto-deploy:V1.0 matveyguralskiy/auto-deploy:V1.0'
-                            sh 'docker push matveyguralskiy/auto-deploy:V1.0'
+                            sh 'docker tag auto-deploy:V1.0 matveyguralskiy/auto-deploy:V1.1'
+                            sh 'docker push matveyguralskiy/auto-deploy:V1.1'
                             echo "Docker Image uploaded"
                         }
                     } catch (Exception e) {
@@ -68,8 +68,8 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'docker pull matveyguralskiy/auto-deploy:V1.0'
-                        sh 'docker run -d --name test-container -p 7000:80 matveyguralskiy/auto-deploy:V1.0'
+                        sh 'docker pull matveyguralskiy/auto-deploy:V${env.DOCKER_VERSION}'
+                        sh 'docker run -d --name test-container -p 7000:80 matveyguralskiy/auto-deploy:V1.1'
                         def response = sh(script: 'curl -s -o /dev/null -w "%{http_code}" localhost', returnStdout: true).trim()
                         if (response == '200') {
                             echo "Application page is accessible"
