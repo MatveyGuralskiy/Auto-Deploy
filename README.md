@@ -36,6 +36,7 @@ After that, we check to make sure everything still works with those Docker image
 
 <img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Demonstration.png?raw=true">
 <br>
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Website-V1.2-31.png?raw=true">
 <h2>3 Steps of Project and Detail Demonstartion</h2>
 <br>
 <img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Step-1.png?raw=true">
@@ -65,7 +66,7 @@ After that, we check to make sure everything still works with those Docker image
 - [ ] Copy to Jenkinsfile my pipeline
 - [ ] Create Empty Repository in DockerHub
 - [ ] Create in service Certificate Manager SSL Certificate and make DNS Validation with Route53
-- [ ] Create Bash script for Bootstapping for Instances to install docker and pull Image from DockerHub
+- [ ] Create Bash script for Bootstrapping for Instances to install docker and pull Image from DockerHub
 - [ ] Run Jenkins Job
 - [ ] Make changes in GitHub repository to see Auto-Deploy of Project
 
@@ -74,7 +75,11 @@ After that, we check to make sure everything still works with those Docker image
       
 Create Security group with ports: 80, 8080, 22, 7000
 
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Security-Group-1.png?raw=true">
+
 Go to AWS EC2 Instances and run Ubuntu Image with Instance type "t3.small"
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Master-Instance-2.png?raw=true">
 
 Create Key-pair in AWS and copy the Private Key for SSH connection
 
@@ -91,6 +96,8 @@ Install nginx for Testing
 sudo apt update
 sudo apt install nginx
 ```
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Master-SSH-3.png?raw=true">
 
 Install Jenkins + Java
 ```
@@ -110,6 +117,8 @@ sudo apt-get install jenkins
 java --version
 jenkins --version
 ```
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Master-SSH-4.png?raw=true">
 
 Install Docker
 ```
@@ -138,12 +147,19 @@ sudo usermod -aG docker jenkins
 docker images
 ```
 
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Master-SSH-5.png?raw=true">
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Master-SSH-6-2.png?raw=true">
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Reboot-Master-23.png?raw=true">
+
 Install Terraform
 ```
 sudo snap install terraform --classic
 terraform --version
 ```
 
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Master-SSH-6.png?raw=true">
 
 #### Go to Jenkins Dashboard and create Job with Pipeline and use GitHub Plugin
 - [x] Go to Jenkins Dashboard and create Job with Pipeline and use GitHub Plugin
@@ -151,14 +167,27 @@ Go to AWS EC2 Instance Console to the PublicIP and copy him
 
 Open Browser and put the PublicIP:8080 and start to sign up and install Plugins
 
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Jenkins-7.png?raw=true">
+
 Create Job with Pipeline and choose GitHub and Copy repository link and path to Jenkins
 
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Jenkins-8.png?raw=true">
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Jenkins-9.png?raw=true">
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Jenkins-10.png?raw=true">
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Jenkins-11.png?raw=true">
 
 #### Create Repository of your Project in GitHub and connect Jenkins with WebHook
 - [x] Create Repository of your Project in GitHub and connect Jenkins with WebHook
 In GitHub Repository go to Setting --> Webhook and enter the http://PublicIP:8080/github-webhook/
 
 Now every commit you push in GitHub automatically will run Jenkins Job
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/GitHub-Webhook-16.png?raw=true">
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/GitHub-Webhook-17.png?raw=true">
 
 #### Create Jenkinsfile in Repository
 - [x] Create Jenkinsfile in Repository
@@ -175,6 +204,13 @@ Now for AWS I created IAM profile and download for him Access key and Secret key
 
 So to use them for authorization I used in Credentials type of Secret text and create one for Access Key and the second one for Secret Key
 
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Jenkins-12.png?raw=true">
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Jenkins-13.png?raw=true">
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Jenkins-14.png?raw=true">
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Jenkins-15.png?raw=true">
 
 #### Write Dockerfile
 - [x] Write Dockerfile
@@ -196,6 +232,7 @@ Go to my repository directory Jenkins and use my Jenkinsfile, of course modified
 - [x] Create Empty Repository in DockerHub
 Go to DockerHub and Create simple Repository to upload Images of Application from Jenkins
 
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/DockerHub-18.png?raw=true">
 
 #### Create in service Certificate Manager SSL Certificate and make DNS Validation with Route53
 - [x] Create in service Certificate Manager SSL Certificate and make DNS Validation with Route53
@@ -203,11 +240,22 @@ Before to work with project you need DNS Domain for usage
 
 Go to AWS Console Certificate Manager and make Request and enter DNS name
 
-Click to Certificate and Create Record in Route53
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Certificate-Manager-19.png?raw=true">
 
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Certificate-Manager-20.png?raw=true">
 
-#### Create Bash script for Bootstapping for Instances to install docker and pull Image from DockerHub
-- [x] Create Bash script for Bootstapping for Instances to install docker and pull Image from DockerHub
+Click to Certificate and Click at the button "Create Record in Route53"
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Certificate-Manager-21.png?raw=true">
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Certificate-Manager-22.png?raw=true">
+
+In terraform file *variables.tf* change the arn to arn of Certificate you get
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Certificate-ARN-24.png?raw=true">
+
+#### Create Bash script for Bootstrapping for Instances to install docker and pull Image from DockerHub
+- [x] Create Bash script for Bootstrapping for Instances to install docker and pull Image from DockerHub
 You can use my Script from repository go to directory Bash --> bootstrapping.sh
 
 Now our Ubuntu Instances will Install Docker and our Docker Image from DockerHub and run it on port 80
@@ -216,16 +264,44 @@ Now our Ubuntu Instances will Install Docker and our Docker Image from DockerHub
 - [x] Run Jenkins Job
 After everything you get all files, Run the Job in Jenkins and enjoy your Application full Deployment:)
 
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Run-Job-25.png?raw=true">
+
 Now go to your DNS name for example: "website.matveyguralskiy.com" and you can see your Application in Port 443
 
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Website-V1.0-27.png?raw=true">
+
 with SSL Certificate and if you go to Port 80 Application Load Balancer of AWS will make Redirect to Port 443
+
+Your DockerHub will be look like that
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/DockerHub-28.png?raw=true">
 
 #### Make changes in GitHub repository to see Auto-Deploy of Project
 - [x] Make changes in GitHub repository to see Auto-Deploy of Project
 For example change the Docker version in Jenkinsfile and change HTML file of Application
 
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Change-Version-26.png?raw=true">
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Website-V1.2-31.png?raw=true">
+
 Now Your Intances will upload new version of Application
 
+
+And DockerHub get now new versions of Project
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/DockerHub-29.png?raw=true">
+
+It's all Jobs in Jenkins
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Run-Jobs-30.png?raw=true">
+
+In AWS Console Route53 get new Record because of Terraform
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Route53-32.png?raw=true">
+
+It's All List of Instances
+
+<img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Instances-33.png?raw=true">
 <h2>🎬 View Demo</h2>
 <p>Comming soon...</p>
 
