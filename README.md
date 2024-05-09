@@ -66,7 +66,7 @@ After that, we check to make sure everything still works with those Docker image
 - [ ] Copy to Jenkinsfile my pipeline
 - [ ] Create Empty Repository in DockerHub
 - [ ] Create in service Certificate Manager SSL Certificate and make DNS Validation with Route53
-- [ ] Create Bash script for Bootstapping for Instances to install docker and pull Image from DockerHub
+- [ ] Create Bash script for Bootstrapping for Instances to install docker and pull Image from DockerHub
 - [ ] Run Jenkins Job
 - [ ] Make changes in GitHub repository to see Auto-Deploy of Project
 
@@ -254,8 +254,8 @@ In terraform file *variables.tf* change the arn to arn of Certificate you get
 
 <img src="https://github.com/MatveyGuralskiy/Auto-Deploy/blob/main/Screens/Screens/Certificate-ARN-24.png?raw=true">
 
-#### Create Bash script for Bootstapping for Instances to install docker and pull Image from DockerHub
-- [x] Create Bash script for Bootstapping for Instances to install docker and pull Image from DockerHub
+#### Create Bash script for Bootstrapping for Instances to install docker and pull Image from DockerHub
+- [x] Create Bash script for Bootstrapping for Instances to install docker and pull Image from DockerHub
 You can use my Script from repository go to directory Bash --> bootstrapping.sh
 
 Now our Ubuntu Instances will Install Docker and our Docker Image from DockerHub and run it on port 80
