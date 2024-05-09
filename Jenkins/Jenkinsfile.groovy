@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    
+    // Enviroment Variables for Project
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('dockerhub')
         GITHUB_CREDENTIALS = credentials('github')
@@ -8,8 +8,9 @@ pipeline {
         AWS_SECRET_ACCESS_KEY = credentials('aws-secret')
         DOCKER_VERSION = 'V1.0'
     }
-
+    
     stages {
+        // Testing Port 80 on Nginx
         stage('Testing Port 80') {
             steps {
                 script {
@@ -22,6 +23,7 @@ pipeline {
                 }
             }
         }
+        // Clone GitHub repository and Image Application to Docker Image
         stage('Clone Repository and Build Docker Image') {
             steps {
                 script {
@@ -37,7 +39,7 @@ pipeline {
                                     sh 'git clone https://github.com/MatveyGuralskiy/Auto-Deploy.git Application'
                                 }
                                 dir('Application/Application') {
-                                    sh "docker build -t auto-deploy:V1.0 ."
+                                    sh "docker build -t auto-deploy:$DOCKER_VERSION ."
                                 }
                                 sh 'echo "Application created to Docker Image"'
                             }
@@ -48,14 +50,15 @@ pipeline {
                 }
             }
         }
+        // Rename Image for Upload to DockerHub
         stage('Rename and Push Docker Image to DockerHub') {
             steps {
                 script {
                     try {
                         withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                             sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
-                            sh 'docker tag auto-deploy:V1.0 matveyguralskiy/auto-deploy:V1.0'
-                            sh 'docker push matveyguralskiy/auto-deploy:V1.0'
+                            sh "docker tag auto-deploy:$DOCKER_VERSION matveyguralskiy/auto-deploy:$DOCKER_VERSION"
+                            sh "docker push matveyguralskiy/auto-deploy:$DOCKER_VERSION"
                             echo "Docker Image uploaded"
                         }
                     } catch (Exception e) {
@@ -64,12 +67,13 @@ pipeline {
                 }
             }
         }
+        // Testing Docker Container from DockerHub on port 7000
         stage('Testing Docker Container') {
             steps {
                 script {
                     try {
-                        sh 'docker pull matveyguralskiy/auto-deploy:V1.0'
-                        sh 'docker run -d --name test-container -p 7000:80 matveyguralskiy/auto-deploy:V1.0'
+                        sh "docker pull matveyguralskiy/auto-deploy:$DOCKER_VERSION"
+                        sh "docker run -d --name test-container -p 7000:80 matveyguralskiy/auto-deploy:$DOCKER_VERSION"
                         def response = sh(script: 'curl -s -o /dev/null -w "%{http_code}" localhost', returnStdout: true).trim()
                         if (response == '200') {
                             echo "Application page is accessible"
@@ -84,6 +88,7 @@ pipeline {
                 }
             }
         }
+        // Terraform build Infrastructure to AWS
         stage('Terraform Deployment with AWS') {
             steps {
                 script {
