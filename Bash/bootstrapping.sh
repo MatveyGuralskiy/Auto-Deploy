@@ -11,6 +11,6 @@ sudo sh get-docker.sh
 sudo systemctl start docker
 sudo systemctl enable docker
 # To Install my Application from DockerHub
-sudo docker pull matveyguralskiy/auto-deploy:V1.2
+sudo docker pull matveyguralskiy/auto-deploy:V1.0
 # To run the Docker Container on port HTTP
-sudo docker run -d -p 80:80 matveyguralskiy/auto-deploy:V1.2
+sudo docker run -d -p 80:80 matveyguralskiy/auto-deploy:V1.0
